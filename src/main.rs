@@ -60,7 +60,7 @@ async fn main() -> tide::Result<()> {
         .get(sse::endpoint(|req: Request<AppState>, sender| async move {
             sender.send("message", "banana", None).await?;
 
-            while let Ok(message) = &req.state().receiver.as_ref().recv_blocking() {
+            while let Ok(message) = &req.state().receiver.as_ref().recv().await {
                 sender.send("message", message, None).await?;
                 println!("Received message: {}", message);
             }
