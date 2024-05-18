@@ -307,6 +307,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-sse"
+version = "5.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e6fa871e4334a622afd6bb2f611635e8083a6f5e2936c0f90f37c7ef9856298"
+dependencies = [
+ "async-channel 1.9.0",
+ "futures-lite 1.13.0",
+ "http-types",
+ "log",
+ "memchr",
+ "pin-project-lite 0.2.14",
+]
+
+[[package]]
 name = "async-std"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1049,6 +1063,7 @@ checksum = "6c8640c5d730cb13ebd907d8d04b52f55ac9a2eec55b440c8892f40d56c76c1d"
 name = "my-mpsc"
 version = "0.1.0"
 dependencies = [
+ "async-sse 5.1.0",
  "async-std",
  "serde",
  "tide",
@@ -1681,7 +1696,7 @@ checksum = "c5a885fbeb66af9d607a731ce167e3fdfe65e49a68f37f4bbd8618b5efc6ad51"
 dependencies = [
  "async-h1",
  "async-session",
- "async-sse",
+ "async-sse 4.1.0",
  "async-std",
  "async-trait",
  "femme",

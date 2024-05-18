@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use async_std::channel;
 use tide::sse;
+use tide::sse::Sender;
 use tide::Request;
 
 use crate::my_item::post_handler;
@@ -56,8 +57,8 @@ async fn main() -> tide::Result<()> {
 
     app.at("/messages").post(post_handler);
 
-    app.at("/sse")
-        .get(sse::endpoint(|req: Request<AppState>, sender| async move {
+    app.at("/sse").get(sse::endpoint(
+        |req: Request<AppState>, sender: Sender| async move {
             sender.send("message", "banana", None).await?;
 
             while let Ok(message) = &req.state().receiver.as_ref().recv().await {
@@ -66,7 +67,8 @@ async fn main() -> tide::Result<()> {
             }
 
             Ok(())
-        }));
+        },
+    ));
 
     // async_std::task::spawn(async move {
     //     while let Ok(message) = receiver.recv().await {
