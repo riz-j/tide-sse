@@ -54,6 +54,8 @@ async fn main() -> tide::Result<()> {
 
     app.at("/sse").get(sse::endpoint(my_sse::sse_endpoint));
 
+    app.at("/sse-spec").get(my_item::sse_spec);
+
     println!("App listening on port 8543");
     app.listen("127.0.0.1:8543").await?;
     Ok(())
