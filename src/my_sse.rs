@@ -17,9 +17,12 @@ pub async fn sse_endpoint(req: Request<AppState>, sender: Sender) -> tide::Resul
         let message = req.state().receiver.recv().await.unwrap();
         let clients = req.state().clients.lock().await;
 
-        for client in clients.iter() {
-            let _ = client.send("message", &message, None).await;
-        }
+        let send_futures: Vec<_> = clients
+            .iter()
+            .map(|client| client.send("message", &message, None))
+            .collect();
+
+        let _ = futures::future::join_all(send_futures).await;
 
         println!("Received message: {}", message);
     }
