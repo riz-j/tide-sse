@@ -20,3 +20,13 @@ pub async fn post_handler(mut req: Request<AppState>) -> tide::Result {
 
     Ok(format!("Message sent!").into())
 }
+
+pub async fn sse_spec(req: Request<AppState>) -> tide::Result {
+    let clients = req.state().clients.lock().await;
+
+    for client in clients.iter() {
+        println!("{:?}", client.type_id());
+    }
+
+    Ok(format!("Check your terminal").into())
+}
