@@ -1,11 +1,10 @@
 pub mod my_item;
 pub mod my_sse;
 
-use std::any::Any;
 use std::sync::Arc;
 
 use async_std::channel;
-use async_std::sync::RwLock;
+use async_std::sync::Mutex;
 use tide::sse;
 use tide::sse::Sender;
 use tide::Request;
@@ -17,7 +16,7 @@ pub struct AppState {
     pub name: String,
     pub sender: Arc<channel::Sender<String>>,
     pub receiver: Arc<channel::Receiver<String>>,
-    pub clients: Arc<RwLock<Vec<Sender>>>,
+    pub clients: Arc<Mutex<Vec<Sender>>>,
 }
 impl AppState {
     fn new(
@@ -29,7 +28,7 @@ impl AppState {
             name,
             sender,
             receiver,
-            clients: Arc::new(RwLock::new(Vec::new())),
+            clients: Arc::new(Mutex::new(Vec::new())),
         }
     }
 }
@@ -66,7 +65,7 @@ async fn main() -> tide::Result<()> {
         {
             sender.send("message", "Connected!", None).await?;
             // When client connects, append the sender to the AppState's client vector
-            let mut clients = req.state().clients.write().await;
+            let mut clients = req.state().clients.lock().await;
             clients.push(sender);
             println!("A client just connected!");
         }
@@ -75,7 +74,7 @@ async fn main() -> tide::Result<()> {
         loop {
             let message = req.state().receiver.recv().await.unwrap();
             {
-                let clients = req.state().clients.read().await;
+                let clients = req.state().clients.lock().await;
                 println!("{:#?}", clients);
 
                 for client in clients.iter() {
