@@ -78,7 +78,7 @@ async fn main() -> tide::Result<()> {
                 println!("{:#?}", clients);
 
                 for client in clients.iter() {
-                    let _ = client.send("message", &message, None).await?;
+                    let _ = client.send("message", &message, None).await;
                 }
             }
 
