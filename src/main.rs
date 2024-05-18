@@ -73,13 +73,10 @@ async fn main() -> tide::Result<()> {
         // Send messages to all clients when received
         loop {
             let message = req.state().receiver.recv().await.unwrap();
-            {
-                let clients = req.state().clients.lock().await;
-                println!("{:#?}", clients);
+            let clients = req.state().clients.lock().await;
 
-                for client in clients.iter() {
-                    let _ = client.send("message", &message, None).await;
-                }
+            for client in clients.iter() {
+                let _ = client.send("message", &message, None).await;
             }
 
             println!("Received message: {}", message);
