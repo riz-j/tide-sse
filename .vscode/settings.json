@@ -6,5 +6,6 @@
             "database": "/home/rizki/Code/rust/kraken/db_main.db",
             "name": "db_main.db"
         }
-    ]
+    ],
+    "CodeGPT.apiKey": "OpenAI"
 }

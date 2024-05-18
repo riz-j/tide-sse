@@ -1,10 +1,11 @@
 pub mod my_item;
 pub mod my_sse;
 
+use std::any::Any;
 use std::sync::Arc;
 
 use async_std::channel;
-use async_std::sync::Mutex;
+use async_std::sync::RwLock;
 use tide::sse;
 use tide::sse::Sender;
 use tide::Request;
@@ -16,7 +17,7 @@ pub struct AppState {
     pub name: String,
     pub sender: Arc<channel::Sender<String>>,
     pub receiver: Arc<channel::Receiver<String>>,
-    pub clients: Arc<Mutex<Vec<Sender>>>,
+    pub clients: Arc<RwLock<Vec<Sender>>>,
 }
 impl AppState {
     fn new(
@@ -28,7 +29,7 @@ impl AppState {
             name,
             sender,
             receiver,
-            clients: Arc::new(Mutex::new(Vec::new())),
+            clients: Arc::new(RwLock::new(Vec::new())),
         }
     }
 }
@@ -61,57 +62,30 @@ async fn main() -> tide::Result<()> {
     app.at("/messages").post(post_handler);
 
     app.at("/sse").get(sse::endpoint(sse_endpoint));
-
     async fn sse_endpoint(req: Request<AppState>, sender: Sender) -> tide::Result<()> {
-        sender.send("message", "banana", None).await?;
-
-        let app_state = req.state().clone();
         {
-            let mut clients = app_state.clients.lock().await;
+            sender.send("message", "Connected!", None).await?;
+            // When client connects, append the sender to the AppState's client vector
+            let mut clients = req.state().clients.write().await;
             clients.push(sender);
+            println!("A client just connected!");
         }
 
         // Send messages to all clients when received
         loop {
             let message = req.state().receiver.recv().await.unwrap();
-            let clients = req.state().clients.lock().await;
-            for client in clients.iter() {
-                if let Err(err) = client.send("message", &message, None).await {
-                    println!("Error sending message: {}", err);
+            {
+                let clients = req.state().clients.read().await;
+                println!("{:#?}", clients);
+
+                for client in clients.iter() {
+                    let _ = client.send("message", &message, None).await?;
                 }
             }
+
             println!("Received message: {}", message);
         }
     }
-
-    // app.at("/sse2").get(sse::endpoint(
-    //     |req: Request<AppState>, sender: Sender| async move {
-    //         // let app_state = req.state().clone();
-    //         // {
-    //         //     let mut clients = app_state.clients.lock().unwrap();
-    //         //     clients.push(sender);
-    //         // }
-    //         sender.send("message", "banana", None).await?;
-
-    //         let clients = req.state().clients.lock().await;
-    //         while let Ok(message) = &req.state().receiver.as_ref().recv().await {
-    //             for s in clients.iter() {
-    //                 s.send("message", message, None).await?;
-    //             }
-
-    //             // sender.send("message", message, None).await?;
-    //             println!("Received message: {}", message);
-    //         }
-
-    //         Ok(())
-    //     },
-    // ));
-
-    // async_std::task::spawn(async move {
-    //     while let Ok(message) = receiver.recv().await {
-    //         println!("Received: {}", message);
-    //     }
-    // });
 
     println!("App listening on port 8543");
     app.listen("127.0.0.1:8543").await?;
