@@ -4,13 +4,15 @@ use tide::Request;
 use crate::AppState;
 
 pub async fn sse_endpoint(req: Request<AppState>, sender: Sender) -> tide::Result<()> {
-    {
-        sender.send("message", "Connected!", None).await?;
-        // When client connects, append the sender to the AppState's client vector
-        let mut clients = req.state().clients.lock().await;
-        clients.push(sender);
-        println!("A client just connected!");
-    }
+    sender.send("message", "Connected!", None).await?;
+
+    // When client connects, append the sender to the AppState's client vector
+    let mut clients = req.state().clients.lock().await;
+    clients.push(sender);
+    println!("A client just connected!");
+
+    // Unlock the Mutex to allow others to use it
+    std::mem::drop(clients);
 
     // Send messages to all clients when received
     loop {
