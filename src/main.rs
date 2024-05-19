@@ -46,7 +46,7 @@ async fn main() -> tide::Result<()> {
 
     let mut app = tide::with_state(app_state);
 
-    app.at("/").get(my_item::get_handler);
+    app.at("/").serve_file("public/index.html");
 
     app.at("/sse-test").get(sse::endpoint(my_sse::test_sse));
 
@@ -55,6 +55,8 @@ async fn main() -> tide::Result<()> {
     app.at("/sse").get(sse::endpoint(my_sse::sse_endpoint));
 
     app.at("/sse-spec").get(my_item::sse_spec);
+
+    app.at("/*").serve_dir("public/");
 
     println!("App listening on port 8543");
     app.listen("127.0.0.1:8543").await?;
