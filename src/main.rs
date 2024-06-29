@@ -58,7 +58,7 @@ async fn main() -> tide::Result<()> {
 
     app.at("/*").serve_dir("public/");
 
-    println!("App listening on port 8543");
+    println!("App listening on port http://127.0.0.1:8543");
     app.listen("127.0.0.1:8543").await?;
     Ok(())
 }
