@@ -36,7 +36,7 @@ struct RequestBody {
 pub async fn post_handler(mut req: Request<AppState>) -> tide::Result {
     let body = req.body_json::<RequestBody>().await.unwrap();
     let message = body.message.clone();
-    // println!("{}", body.message.clone());
+    println!("{}", body.message.clone());
 
     let _ = req.state().sender.send(message).await?;
 

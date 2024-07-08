@@ -14,9 +14,34 @@ props: {
 },
 setup() {
   const timestamp = moment().format("hh:mm:ss A");
+  const tasks = Vue.ref([]);
 
+  const fetchTasks = async () => {
+    /**
+     * @method 
+     *  create
+     *  read
+     *  list
+     *  update
+     *  delete
+     *  archive
+     */
+    const [result, error] = await rpc.call("task.archive", { taskId: 23 });
 
-  Vue.onMounted(() => console.log("MyCard component mounted"))
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    tasks.value = result;
+  }
+
+  Vue.onMounted(async () => {
+    await Promise.all([
+      fetchTasks(),
+    ])
+    console.log("MyCard component mounted");
+  });
 
   return {
     timestamp
